@@ -1,4 +1,4 @@
-# webtoon_rate_scraping_one_page.py
+# webtoon_rate_scraping_all_page.py
 from bs4 import BeautifulSoup
 import requests
 import pandas as pd #as alias
@@ -40,23 +40,37 @@ def check_next_page(html):
         return False
 
 # 엑셀로 저장하기
-def rate_to_excel(titles, rates):
+def rate_to_excel(name, titles, rates):
     data = [rates] # 이중 리스트
     col = titles
     data_frame = pd.DataFrame(data, columns=col)
-    data_frame.to_excel('청춘블라썸.xlsx', sheet_name='샘플', startrow=0, header=True)
+    data_frame.to_excel(f'{name}_별점수집.xlsx', sheet_name='샘플', startrow=0, header=True)
 
-titles = []
-rates = []
+def get_webtoon_rate_naver_all(name, title_id):
+    titles = []
+    rates = []
 
-next_page = True
-page = 0
-while next_page:
-    page += 1
-    data = get_webtoon_rate_naver(746834, page)
-    titles += data['titles']
-    rates += data['rates']
-    next_page = data['next_page']
+    next_page = True
+    page = 0
+    while next_page:
+        page += 1
+        data = get_webtoon_rate_naver(title_id, page)
+        titles += data['titles']
+        rates += data['rates']
+        next_page = data['next_page']
+
+    titles.reverse()
+    rates.reverse()
+
+    return {
+        'name': name,
+        'url': f'https://comic.naver.com/webtoon/list?titleId={title_id}',
+        'titles_id': title_id,
+        'titles': titles,
+        'rates': rates,
+    }
 
 
-rate_to_excel(titles, rates)
+toon1 = get_webtoon_rate_naver_all('청춘블라썸', 746834)
+
+rate_to_excel(toon1['name'], toon1['titles'], toon1['rates'])
